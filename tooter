@@ -1,0 +1,34 @@
+#!/bin/bash
+
+shopt -s expand_aliases
+source ~/.bashrc
+if ! fgrep -qe '${mastodon_token}' "~/.bashrc";then
+	mkdir ~/bin
+	echo "export PATH=$PATH:/home/$USER/bin" >> ~/.bashrc
+	cp "./tooter" "/home/$USER/bin/"
+	chmod +x "/home/$USER/bin/tooter"
+	read -sp "paste here you mastodon token:" token
+	echo "alias mastodon_token='$token'" >> ~/.bashrc
+	read -sp "here give url of your instance:" instance
+	echo "alias mastodon_instance='$instance'" >> ~/.bashrc
+	source "~/.bashrc"
+	echo "login complete! - now just run as any other command =]."
+else
+	read 'what type of toot you want to post?\n1) public\n2) unlisted\n3) followers-only\n4) private :' toottype
+	read 'type here your toot:' toot
+	case $toottype in
+		1)
+			visibility=public
+			;;
+		2)
+			visibility=unlisted
+			;;
+		3)
+			visibility=private
+			;;
+		4)
+			visibility=direct
+			;;
+	esac
+	curl -H "Authorization: Bearer $mastodon_token" -sS "https://$mastodon_instance/api/v1/statuses" -X POST -d "status=$toot&language=en&visibility=$visibility"
+fi
